@@ -51,6 +51,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <spawn.h>
+extern char **environ;
 
 U_CDECL_BEGIN
 #include "pkgtypes.h"
@@ -533,7 +535,15 @@ normal_command_mode:
     }
 
     printf("pkgdata: %s\n", cmd);
+#if TARGET_OS_IPHONE
+    pid_t pid;
+    char * argv[2]; argv[0] = cmd; argv[1] = NULL;
+    posix_spawn(&pid, argv[0], NULL, NULL, argv, environ);
+    waitpid(pid, NULL, 0);
+    int result = 0;
+#else
     int result = system(cmd);
+#endif
     if (result != 0) {
         fprintf(stderr, "-- return status = %d\n", result);
     }
